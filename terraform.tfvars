@@ -1,0 +1,5 @@
+project  = "cellular-dream-342220"
+image    = "gcr.io/cellular-dream-342220/app"
+region   = "us-east4"
+location = "us-east4"
+zone     = "us-east4-a"
