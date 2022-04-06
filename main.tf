@@ -1,7 +1,31 @@
+data "google_billing_account" "acct" {
+  display_name = "My Billing Account"
+  open         = true
+}
+
+resource "google_project" "my_project" {
+  name            = var.name
+  project_id      = var.project
+  billing_account = data.google_billing_account.acct.id
+}
+
+resource "google_project_service" "gcp_services" {
+  count                      = length(var.gcp_service_list)
+  project                    = var.project
+  service                    = var.gcp_service_list[count.index]
+  disable_dependent_services = true
+  depends_on = [
+    google_project.my_project
+  ]
+}
+
 resource "null_resource" "run_script" {
   provisioner "local-exec" {
     command = "/bin/bash docker-build.sh"
   }
+  depends_on = [
+    google_project.my_project, google_project_service.gcp_services
+  ]
 }
 
 # Enables the Cloud Run API
@@ -41,10 +65,10 @@ resource "google_cloud_run_service_iam_member" "run_all_users" {
 }
 
 resource "google_monitoring_alert_policy" "alert_policy" {
-  display_name = "Terraform Alert Policy"
+  display_name = "Terraform Alert New Policy"
   combiner     = "OR"
   conditions {
-    display_name = "test condition"
+    display_name = "test new condition"
     condition_threshold {
       filter     = "metric.type=\"compute.googleapis.com/instance/disk/write_bytes_count\" AND resource.type=\"gce_instance\""
       duration   = "60s"
@@ -59,15 +83,18 @@ resource "google_monitoring_alert_policy" "alert_policy" {
   user_labels = {
     foo = "bar"
   }
+  depends_on = [
+    google_project.my_project
+  ]
 }
 
 
 resource "google_monitoring_uptime_check_config" "https" {
-  display_name = "Terraform Uptime Check"
+  display_name = "Terraform New Uptime Check"
   timeout      = "60s"
 
   http_check {
-    path         = "/cellular-dream-342220/app"
+    path         = "/terraform-project-100/app"
     port         = "443"
     use_ssl      = true
     validate_ssl = true
@@ -84,70 +111,28 @@ resource "google_monitoring_uptime_check_config" "https" {
   content_matchers {
     content = "example"
   }
+  depends_on = [
+    google_project.my_project
+  ]
 }
 
 resource "google_monitoring_dashboard" "dashboard" {
   dashboard_json = <<EOF
 {
-  "displayName": "Terraform Dashboard",
+  "displayName": "Demo Dashboard",
   "gridLayout": {
-    "columns": "2",
     "widgets": [
       {
-        "title": "Widget 1",
-        "xyChart": {
-          "dataSets": [{
-            "timeSeriesQuery": {
-              "timeSeriesFilter": {
-                "filter": "metric.type=\"agent.googleapis.com/nginx/connections/accepted_count\"",
-                "aggregation": {
-                  "perSeriesAligner": "ALIGN_RATE"
-                }
-              },
-              "unitOverride": "1"
-            },
-            "plotType": "LINE"
-          }],
-          "timeshiftDuration": "0s",
-          "yAxis": {
-            "label": "y1Axis",
-            "scale": "LINEAR"
-          }
-        }
-      },
-      {
-        "text": {
-          "content": "Widget 2",
-          "format": "MARKDOWN"
-        }
-      },
-      {
-        "title": "Widget 3",
-        "xyChart": {
-          "dataSets": [{
-            "timeSeriesQuery": {
-              "timeSeriesFilter": {
-                "filter": "metric.type=\"agent.googleapis.com/nginx/connections/accepted_count\"",
-                "aggregation": {
-                  "perSeriesAligner": "ALIGN_RATE"
-                }
-              },
-              "unitOverride": "1"
-            },
-            "plotType": "STACKED_BAR"
-          }],
-          "timeshiftDuration": "0s",
-          "yAxis": {
-            "label": "y1Axis",
-            "scale": "LINEAR"
-          }
-        }
+        "blank": {}
       }
     ]
   }
 }
 
 EOF
+  depends_on = [
+    google_project.my_project
+  ]
 }
 
 output "url" {
