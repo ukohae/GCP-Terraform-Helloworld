@@ -10,7 +10,7 @@
 - Terraform
 
 ### Installation
--  Install `Terraform on Linux`
+-  Install `Terraform on Linux(Ubuntu)`
 	```
 	sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
 	```
@@ -24,7 +24,7 @@
 	sudo apt-get update && sudo apt-get install terraform
 	```
 	
-- Install specific `Terraform version`
+- Install specific `Terraform version on Linux(Ubuntu)`
 	```
 	curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
         sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
