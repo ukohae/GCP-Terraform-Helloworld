@@ -4,7 +4,8 @@ resource "google_compute_instance" "default" {
   machine_type = "e2-small"
   zone         = "us-east4-a"
 
-  tags = ["foo", "bar"]
+
+  tags = ["http", "https", "jenkins"]
 
   boot_disk {
     initialize_params {
@@ -30,31 +31,27 @@ resource "google_compute_instance" "default" {
   metadata_startup_script = file("${path.module}/jenkins.sh")
 }
 
-resource "null_resource" "enable_service_usage_api" {
-  provisioner "local-exec" {
-    command = "gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com compute.googleapis.com --project ${var.project_id}"
-  }
+# resource "null_resource" "enable_service_usage_api" {
+#   provisioner "local-exec" {
+#     command = "gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com compute.googleapis.com --project ${var.project_id}"
+#   }
 
-  #   depends_on = [google_project.my_project]
-}
+#   #   depends_on = [google_project.my_project]
+# }
 
 # Wait for the new configuration to propagate
 # (might be redundant)
-resource "time_sleep" "wait_project_init" {
-  create_duration = "60s"
+# resource "time_sleep" "wait_project_init" {
+#   create_duration = "60s"
 
-  depends_on = [null_resource.enable_service_usage_api]
-}
+#   depends_on = [null_resource.enable_service_usage_api]
+# }
 
 
 resource "google_compute_firewall" "default" {
   project = var.project_id
-  name    = "jenkins-port"
+  name    = "jenkins"
   network = "default"
-
-  allow {
-    protocol = "icmp"
-  }
 
   allow {
     protocol = "tcp"
@@ -63,4 +60,33 @@ resource "google_compute_firewall" "default" {
 
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["jenkins"]
+
+  source_tags = ["jenkins"]
+}
+
+resource "google_compute_firewall" "allow-http" {
+  project = var.project_id
+  name    = "http"
+  network = "default"
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["http"]
+}
+
+# allow https
+resource "google_compute_firewall" "allow-https" {
+  project = var.project_id
+  name    = "https"
+  network = "default"
+  allow {
+    protocol = "tcp"
+    ports    = ["443"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["https"]
 }
