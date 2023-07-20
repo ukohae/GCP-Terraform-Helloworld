@@ -45,11 +45,6 @@ sudo mv terraform-docs /usr/local/bin/
 ```
 
 
-### Run docker as root
-```	
-sudo -s
-```
-
 ### Install `gcloud` and `authenticate using Google CLI`
 ```
 sudo apt-get install apt-transport-https ca-certificates gnupg
@@ -63,12 +58,11 @@ curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyr
 ```
 sudo apt-get update && sudo apt-get install google-cloud-cli
 ```
-```
-gcloud init
-```
 - Log in into `GCP`
 ```
-gcloud auth login
+gcloud auth application-default login --no-launch-browser
+```
+``````
 gcloud auth configure-docker
 ```
 
@@ -78,6 +72,9 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
 ```
 ```
 sudo apt-get install -y nodejs
+```
+```
+sudo apt-get update && sudo apt-get install yarn
 ```
 ### Infrastructure as Code - IaC
 - Terraform v1.1.5
@@ -138,7 +135,7 @@ Then, update the following scripts <br />
 	project	= "Project_ID"
 	image	= "gcr.io/Poject_ID/app"
 	```
-6.	on the **main.tf**, line 70 of 
+6.	on the **main.tf**, line 92 of 
 	```
 	resource "google_monitoring_uptime_check_config" "https" {
 		display_name = "Terraform Uptime Check"

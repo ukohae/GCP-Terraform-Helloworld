@@ -43,3 +43,8 @@ terraform.tfstate.backup
 
 # gcp installation
 google-cloud-sdk
+
+# terraform
+ terraform.tfstate*
+ .terraform*
+venv
