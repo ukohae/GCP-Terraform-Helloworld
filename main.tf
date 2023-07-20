@@ -1,5 +1,5 @@
 data "google_billing_account" "acct" {
-  display_name = "My Billing Account"
+  display_name = "My Billing Account 1"
   open         = true
 }
 
@@ -94,7 +94,7 @@ resource "google_monitoring_uptime_check_config" "https" {
   timeout      = "60s"
 
   http_check {
-    path         = "/terraform-project-100/app"
+    path         = "/cellular-terraform-project-100/app"
     port         = "443"
     use_ssl      = true
     validate_ssl = true
