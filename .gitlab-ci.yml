@@ -1,0 +1,92 @@
+image:
+  name: hashicorp/terraform:light
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+    - 'AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}' 
+    - 'AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}' 
+    - 'AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}'
+
+variables:
+  PLAN: plan.tfplan
+  TF_IN_AUTOMATION: "true"
+  GITLAB_TF_ADDRESS: https://gitlab.com/api/v4/projects/39837952/terraform/state/statebackend
+  STATE: "terraform.tfstate"
+
+
+cache:
+  key: "$CI_COMMIT_SHA"
+  paths:
+    - .terraform
+
+before_script:
+  - terraform --version
+  - terraform init -backend-config="address=${GITLAB_TF_ADDRESS}" -backend-config="lock_address=${GITLAB_TF_ADDRESS}/lock" -backend-config="unlock_address=${GITLAB_TF_ADDRESS}/lock" -backend-config="username=ukohae39" -backend-config="password=glpat-kDmGDgERve1NHw-axV_A" -backend-config="lock_method=POST" -backend-config="unlock_method=DELETE" -backend-config="retry_wait_min=5"
+stages:
+  - validate
+  - plan
+  - apply
+  - destroy
+
+validate:
+  stage: validate
+  script:
+    - terraform validate
+  only:
+    - branches
+
+plan:
+  stage: plan
+  script:
+    - terraform plan -out=$PLAN
+    - echo \`\`\`diff > plan.txt
+    - terraform show -no-color ${PLAN} | tee -a plan.txt
+    - echo \`\`\` >> plan.txt
+    - sed -i -e 's/  +/+/g' plan.txt
+    - sed -i -e 's/  ~/~/g' plan.txt
+    - sed -i -e 's/  -/-/g' plan.txt
+    - MESSAGE=$(cat plan.txt)
+    - >-
+      curl -X POST -g -H "PRIVATE-TOKEN: ${GITLAB_ACCESS_TOKEN}" 
+      --data-urlencode "body=${MESSAGE}" 
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/discussions"
+  artifacts:
+    name: plan
+    paths:
+      - $PLAN
+  only:
+    - merge_requests
+
+build:
+  stage: plan
+  script:
+    - terraform plan -out=$PLAN
+  artifacts:
+    name: plan
+    paths:
+      - $PLAN
+  only:
+    - main
+
+apply:
+  stage: apply
+  script:
+    - terraform apply -input=false $PLAN
+  dependencies:
+    - build
+  when: manual
+  only:
+    - main
+
+destroy:
+  stage: destroy
+  script:
+    - echo "Destroying resources created"
+    - terraform destroy -state=$STATE --auto-approve
+    #- terraform destroy -state="terraform.tfstate" -auto-approve
+  dependencies:
+    - apply  
+  when: manual
+  only:
+    refs:
+      - hotfix
