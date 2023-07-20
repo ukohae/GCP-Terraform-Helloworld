@@ -94,7 +94,7 @@ resource "google_monitoring_uptime_check_config" "https" {
   timeout      = "60s"
 
   http_check {
-    path         = "/cellular-terraform-project-100/app"
+    path         = "/cellular-project-100/app"
     port         = "443"
     use_ssl      = true
     validate_ssl = true

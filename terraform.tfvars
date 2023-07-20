@@ -1,6 +1,6 @@
 # project  = "cellular-dream-342220"
-project  = "cellular-terraform-project-100"
-image    = "gcr.io/cellular-terraform-project-100/app"
+project  = "cellular-project-100"
+image    = "gcr.io/cellular-project-100/app"
 region   = "us-east4"
 location = "us-east4"
 zone     = "us-east4-a"
