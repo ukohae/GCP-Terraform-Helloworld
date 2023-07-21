@@ -43,3 +43,7 @@ terraform.tfstate.backup
 
 # gcp installation
 google-cloud-sdk
+
+# virtual environment
+venv
+yarn.lock

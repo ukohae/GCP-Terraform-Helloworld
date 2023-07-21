@@ -4,3 +4,6 @@ gcp_service_list = [
 
 project_id = "gcp-terraform-env"
 name       = "Terraform Project"
+
+region = "us-east4"
+zone   = "us-east4-a"
