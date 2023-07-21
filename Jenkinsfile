@@ -1,6 +1,11 @@
 pipeline {
     agent any
-    stages {        
+    stages { 
+        stage ("jenkins") {  
+        steps {
+                sh "sudo chown root:jenkins /run/docker.sock"
+            }
+        }    
         stage ("init") {
             steps {
                 sh 'terraform init'
@@ -73,7 +78,6 @@ pipeline {
 
                     echo "Terraform action is --> ${action}"
                     sh "$USER"
-                    sh "sudo chown root:$USER /run/docker.sock"
                     sh "terraform ${action} --auto-approve"
                 }
             }

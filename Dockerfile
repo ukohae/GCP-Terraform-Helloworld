@@ -6,4 +6,4 @@ RUN npm ci --only=production
 RUN npm run build
 USER node
 ENTRYPOINT npm start -- -p $PORT
-RUN echo "$USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+RUN echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
