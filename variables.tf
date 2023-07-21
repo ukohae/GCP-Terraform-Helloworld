@@ -34,3 +34,8 @@ variable "enable_service" {
   type    = bool
   default = false
 }
+
+variable "create_jenkins" {
+  type    = bool
+  default = false
+}
