@@ -72,7 +72,6 @@ pipeline {
                     }
 
                     echo "Terraform action is --> ${action}"
-                    sh "$USER"
                     sh "terraform ${action} --auto-approve"
                 }
             }
