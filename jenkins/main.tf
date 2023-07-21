@@ -1,15 +1,15 @@
 resource "google_compute_instance" "default" {
   name         = "jenkins-vm"
-  project      = "gcp-terraform-env"
-  machine_type = "e2-small"
+  project      = var.project_id
+  machine_type = "e2-medium"
   zone         = "us-east4-a"
 
 
-  tags = ["http", "https", "jenkins"]
+  tags = ["http-server", "https-server", "jenkins"]
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2004-lts"
+      image = "debian-cloud/debian-11"
       labels = {
         my_label = "value"
       }
@@ -24,28 +24,22 @@ resource "google_compute_instance" "default" {
     }
   }
 
-  metadata = {
-    foo = "bar"
-  }
-
   metadata_startup_script = file("${path.module}/jenkins.sh")
 }
 
-# resource "null_resource" "enable_service_usage_api" {
-#   provisioner "local-exec" {
-#     command = "gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com compute.googleapis.com --project ${var.project_id}"
-#   }
+resource "null_resource" "enable_service_usage_api" {
+  count = var.enable_service ? 1 : 0
+  provisioner "local-exec" {
+    command = "gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com compute.googleapis.com --project ${var.project_id}"
+  }
+}
 
-#   #   depends_on = [google_project.my_project]
-# }
+resource "time_sleep" "wait_project_init" {
+  count           = var.enable_service ? 1 : 0
+  create_duration = "60s"
 
-# Wait for the new configuration to propagate
-# (might be redundant)
-# resource "time_sleep" "wait_project_init" {
-#   create_duration = "60s"
-
-#   depends_on = [null_resource.enable_service_usage_api]
-# }
+  depends_on = [null_resource.enable_service_usage_api]
+}
 
 
 resource "google_compute_firewall" "default" {

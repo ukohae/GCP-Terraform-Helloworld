@@ -10,3 +10,8 @@ variable "project_id" {
 variable "name" {
   type = string
 }
+
+variable "enable_service" {
+  type    = bool
+  default = false
+}

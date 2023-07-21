@@ -1,30 +1,115 @@
-data "google_billing_account" "acct" {
-  display_name = "My Billing Account"
-  open         = true
+resource "google_storage_bucket" "auto-expire" {
+  name          = "cloudquicklabs_gcp_bucket_iac-${random_id.unique.hex}"
+  location      = "US"
+  force_destroy = true
+
+  public_access_prevention = "enforced"
 }
 
-resource "google_project" "my_project" {
-  name            = var.name
-  project_id      = var.project
-  billing_account = data.google_billing_account.acct.id
+resource "random_id" "unique" {
+  byte_length = 4
 }
+
+# resource "google_compute_instance" "default" {
+#   name         = "jenkins-vm"
+#   project      = var.project
+#   machine_type = "e2-medium"
+#   zone         = "us-east4-a"
+
+
+#   tags = ["http-server", "https-server", "jenkins"]
+
+#   boot_disk {
+#     initialize_params {
+#       image = "debian-cloud/debian-11"
+#       labels = {
+#         my_label = "value"
+#       }
+#     }
+#   }
+
+#   network_interface {
+#     network = "default"
+
+#     access_config {
+#       // Ephemeral public IP
+#     }
+#   }
+
+#   metadata_startup_script = file("${path.module}/jenkins.sh")
+# }
+
+# resource "null_resource" "enable_service_usage_api" {
+#   count = var.enable_service ? 1 : 0
+#   provisioner "local-exec" {
+#     command = "gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com compute.googleapis.com --project ${var.project}"
+#   }
+# }
+
+# resource "time_sleep" "wait_project_init" {
+#   count           = var.enable_service ? 1 : 0
+#   create_duration = "60s"
+
+#   depends_on = [null_resource.enable_service_usage_api]
+# }
+
+
+# resource "google_compute_firewall" "default" {
+#   project = var.project
+#   name    = "jenkins"
+#   network = "default"
+
+#   allow {
+#     protocol = "tcp"
+#     ports    = ["8080"]
+#   }
+
+#   source_ranges = ["0.0.0.0/0"]
+#   target_tags   = ["jenkins"]
+
+#   source_tags = ["jenkins"]
+# }
+
+# resource "google_compute_firewall" "allow-http" {
+#   project = var.project
+#   name    = "http"
+#   network = "default"
+#   allow {
+#     protocol = "tcp"
+#     ports    = ["80"]
+#   }
+
+#   source_ranges = ["0.0.0.0/0"]
+#   target_tags   = ["http"]
+# }
+
+# # allow https
+# resource "google_compute_firewall" "allow-https" {
+#   project = var.project
+#   name    = "https"
+#   network = "default"
+#   allow {
+#     protocol = "tcp"
+#     ports    = ["443"]
+#   }
+
+#   source_ranges = ["0.0.0.0/0"]
+#   target_tags   = ["https"]
+# }
 
 resource "google_project_service" "gcp_services" {
   count                      = length(var.gcp_service_list)
   project                    = var.project
   service                    = var.gcp_service_list[count.index]
   disable_dependent_services = true
-  depends_on = [
-    google_project.my_project
-  ]
 }
 
 resource "null_resource" "run_script" {
   provisioner "local-exec" {
-    command = "/bin/bash docker-build.sh"
+    command = "/bin/sh docker-build.sh"
   }
   depends_on = [
-    google_project.my_project, google_project_service.gcp_services
+    google_project_service.gcp_services
   ]
 }
 
@@ -55,7 +140,6 @@ resource "google_cloud_run_service" "webapp" {
   depends_on = [google_project_service.run_api]
 }
 
-# Allow unauthenticated users to invoke the service
 resource "google_cloud_run_service_iam_member" "run_all_users" {
   service  = google_cloud_run_service.webapp.name
   location = google_cloud_run_service.webapp.location
@@ -83,9 +167,6 @@ resource "google_monitoring_alert_policy" "alert_policy" {
   user_labels = {
     foo = "bar"
   }
-  depends_on = [
-    google_project.my_project
-  ]
 }
 
 
@@ -94,7 +175,7 @@ resource "google_monitoring_uptime_check_config" "https" {
   timeout      = "60s"
 
   http_check {
-    path         = "/terraform-project-100/app"
+    path         = "/gcp-terraform-env/app"
     port         = "443"
     use_ssl      = true
     validate_ssl = true
@@ -111,9 +192,6 @@ resource "google_monitoring_uptime_check_config" "https" {
   content_matchers {
     content = "example"
   }
-  depends_on = [
-    google_project.my_project
-  ]
 }
 
 resource "google_monitoring_dashboard" "dashboard" {
@@ -130,9 +208,6 @@ resource "google_monitoring_dashboard" "dashboard" {
 }
 
 EOF
-  depends_on = [
-    google_project.my_project
-  ]
 }
 
 output "url" {
