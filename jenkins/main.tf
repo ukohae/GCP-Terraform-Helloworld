@@ -96,3 +96,8 @@ resource "google_compute_firewall" "allow-https" {
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["https"]
 }
+
+
+output "jenkins_ip" {
+  value = google_compute_instance.default.hostname
+}
