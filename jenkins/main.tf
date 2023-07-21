@@ -1,11 +1,3 @@
-resource "google_storage_bucket" "auto-expire" {
-  name          = "cloudquicklabs_gcp_bucket_iac-${random_id.unique.hex}"
-  location      = "US"
-  force_destroy = true
-
-  public_access_prevention = "enforced"
-}
-
 resource "random_id" "unique" {
   byte_length = 4
 }
@@ -95,9 +87,4 @@ resource "google_compute_firewall" "allow-https" {
 
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["https"]
-}
-
-
-output "jenkins_ip" {
-  value = google_compute_instance.default.hostname
 }

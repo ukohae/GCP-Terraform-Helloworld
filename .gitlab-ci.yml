@@ -9,6 +9,7 @@ before_script:
      -  terraform --version
      -  mkdir -p ./creds
      -  echo $SERVICEACCOUNT | base64 -d > ./creds/serviceaccount.json
+     - cd jenkins
      -  terraform init
 
 stages:
