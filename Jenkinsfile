@@ -1,11 +1,6 @@
 pipeline {
     agent any
-    stages { 
-        stage ("jenkins") {  
-        steps {
-                sh "sudo chown root:$USER /run/docker.sock"
-            }
-        }    
+    stages {   
         stage ("init") {
             steps {
                 sh 'terraform init'
