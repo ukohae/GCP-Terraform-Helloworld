@@ -6,13 +6,15 @@ gcloud auth activate-service-account gcp-test@gcp-terraform-env.iam.gserviceacco
 gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
 echo $USER
 sudo usermod -a -G docker $USER
+usermod -aG docker $USER
+usermod -aG root $USER
 chmod 777 /var/run/docker.sock
 
 echo "####################################################"
 echo "####################################################"
 echo "####################################################"
 echo "####################################################"
-reboot
+sudo service docker restart
 
 echo "####################################################"
 echo "####################################################"
