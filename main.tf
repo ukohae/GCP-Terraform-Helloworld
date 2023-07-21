@@ -19,7 +19,7 @@ resource "google_project_service" "gcp_services" {
 
 resource "null_resource" "run_script" {
   provisioner "local-exec" {
-    command = "/bin/sh docker-build.sh"
+    command = "sudo /bin/sh docker-build.sh"
   }
   depends_on = [
     google_project_service.gcp_services
