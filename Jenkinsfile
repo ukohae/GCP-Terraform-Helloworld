@@ -72,6 +72,8 @@ pipeline {
                     }
 
                     echo "Terraform action is --> ${action}"
+                    sh "$USER"
+                    sh "sudo chown root:$USER /run/docker.sock"
                     sh "terraform ${action} --auto-approve"
                 }
             }
